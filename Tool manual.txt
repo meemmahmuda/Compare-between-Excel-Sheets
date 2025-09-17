@@ -1,0 +1,40 @@
+Step 1: Start the Tool
+	Double-click the provided .exe file.
+	A file choose window will appear.
+
+Step 2: Select the First File
+	Browse your folders and select your first Excel file.
+	Click Open.
+
+Step 3: Select the Second File
+	Another file choose window will open.
+	Select your second Excel file to compare.
+	Click Open.
+
+Step 4: Enter Column Name
+	After 1–2 seconds, a new window will appear.
+	Type the column name from your first chosen file that you want to sort by.
+	The column name can be typed in uppercase or lowercase.
+	Click OK.
+
+Step 4: Enter Column Name
+	Type the column name from your second chosen file that you want to sort by.
+	The column name can be typed in uppercase or lowercase.
+	Click OK.
+
+Step 5: Choose Save Location
+	A Save File window will open.
+	Choose where you want to save the result file.
+	Enter a file name and click Save.
+
+Step 6: View the Results
+	Open the saved file in Excel.
+	The result will display mismatched data between the two files.
+	Left side → Data from the first file that does not exist in the second file.
+	Right side → Data from the second file that does not exist in the first file.
+
+Important Notes
+	The tool only works with table data in Excel.
+	The data must be placed in the first sheet of both files.
+	If your Excel file has multiple sheets, make sure the data you want to compare is in Sheet1.
+	Do not use the Excel filter option while working with the sorted file – this may cause errors.

@@ -17,56 +17,93 @@
 # print("Done! Files created: matched_both.xlsx, unmatched_both.xlsx")
 
 
+# import pandas as pd
+# from tkinter import Tk, filedialog, simpledialog
+# import os
+
+# root = Tk()
+# root.withdraw()
+
+# def load_file(file_path):
+#     ext = os.path.splitext(file_path)[1].lower()
+#     if ext == ".csv":
+#         return pd.read_csv(file_path)
+#     elif ext == ".xlsx":
+#         return pd.read_excel(file_path, sheet_name=0)
+#     else:
+#         raise ValueError(f"Unsupported file type: {ext}")
+
+# file1 = filedialog.askopenfilename(
+#     title="Select first file",
+#     filetypes=[("Excel or CSV files", "*.xlsx *.csv")]
+# )
+
+# file2 = filedialog.askopenfilename(
+#     title="Select second file",
+#     filetypes=[("Excel or CSV files", "*.xlsx *.csv")]
+# )
+
+# df1 = load_file(file1)
+# df2 = load_file(file2)
+
+# df1_columns_lower = {col.lower(): col for col in df1.columns}
+# df2_columns_lower = {col.lower(): col for col in df2.columns}
+
+# col1_input = simpledialog.askstring("Input", "Enter column name from first file to compare:").strip().lower()
+# col2_input = simpledialog.askstring("Input", "Enter column name from second file to compare:").strip().lower()
+
+# col1 = df1_columns_lower.get(col1_input)
+# col2 = df2_columns_lower.get(col2_input)
+
+# if not col1 or not col2:
+#     raise ValueError("Column not found in one of the files. Check spelling.")
+
+# merged = pd.merge(df1, df2, left_on=col1, right_on=col2, how='outer', indicator=True)
+
+# unmatched = merged[merged['_merge'] != 'both']
+
+# unmatched_file = filedialog.asksaveasfilename(
+#     title="Save unmatched file as",
+#     defaultextension=".xlsx",
+#     filetypes=[("Excel files", "*.xlsx")]
+# )
+# if unmatched_file:
+#     unmatched.to_excel(unmatched_file, index=False)
+#     print(f"Done! Unmatched data saved to {unmatched_file}")
+
+
+# python -m PyInstaller --onefile --noconsole sort.py
+
+
 import pandas as pd
-from tkinter import Tk, filedialog, simpledialog
-import os
+from tkinter import Tk, filedialog, StringVar, OptionMenu, Button, Toplevel
 
 root = Tk()
-root.withdraw()
+root.withdraw()  
 
-def load_file(file_path):
-    ext = os.path.splitext(file_path)[1].lower()
-    if ext == ".csv":
-        return pd.read_csv(file_path)
-    elif ext == ".xlsx":
-        return pd.read_excel(file_path, sheet_name=0)
-    else:
-        raise ValueError(f"Unsupported file type: {ext}")
 
-file1 = filedialog.askopenfilename(
-    title="Select first file",
-    filetypes=[("Excel or CSV files", "*.xlsx *.csv")]
-)
+def load_file(path):
+    return pd.read_csv(path) if path.endswith(".csv") else pd.read_excel(path)
 
-file2 = filedialog.askopenfilename(
-    title="Select second file",
-    filetypes=[("Excel or CSV files", "*.xlsx *.csv")]
-)
+file1 = filedialog.askopenfilename(title="Select first file", filetypes=[("Excel or CSV", "*.xlsx *.csv")])
+file2 = filedialog.askopenfilename(title="Select second file", filetypes=[("Excel or CSV", "*.xlsx *.csv")])
 
-df1 = load_file(file1)
-df2 = load_file(file2)
+df1, df2 = load_file(file1), load_file(file2)
 
-df1_columns_lower = {col.lower(): col for col in df1.columns}
-df2_columns_lower = {col.lower(): col for col in df2.columns}
+win = Toplevel(root)
+win.title("Select Columns")
+var1, var2 = StringVar(value=df1.columns[0]), StringVar(value=df2.columns[0])
+OptionMenu(win, var1, *df1.columns).pack(padx=10, pady=5)
+OptionMenu(win, var2, *df2.columns).pack(padx=10, pady=5)
+Button(win, text="OK", command=win.destroy).pack(pady=10)
+root.wait_window(win)
 
-col1_input = simpledialog.askstring("Input", "Enter column name from first file to compare:").strip().lower()
-col2_input = simpledialog.askstring("Input", "Enter column name from second file to compare:").strip().lower()
+col1, col2 = var1.get(), var2.get()
 
-col1 = df1_columns_lower.get(col1_input)
-col2 = df2_columns_lower.get(col2_input)
+unmatched = pd.merge(df1, df2, left_on=col1, right_on=col2, how="outer", indicator=True)
+unmatched = unmatched[unmatched["_merge"] != "both"]
 
-if not col1 or not col2:
-    raise ValueError("Column not found in one of the files. Check spelling.")
-
-merged = pd.merge(df1, df2, left_on=col1, right_on=col2, how='outer', indicator=True)
-
-unmatched = merged[merged['_merge'] != 'both']
-
-unmatched_file = filedialog.asksaveasfilename(
-    title="Save unmatched file as",
-    defaultextension=".xlsx",
-    filetypes=[("Excel files", "*.xlsx")]
-)
-if unmatched_file:
-    unmatched.to_excel(unmatched_file, index=False)
-    print(f"Done! Unmatched data saved to {unmatched_file}")
+save_path = filedialog.asksaveasfilename(title="Save unmatched file", defaultextension=".xlsx", filetypes=[("Excel", "*.xlsx")])
+if save_path:
+    unmatched.to_excel(save_path, index=False)
+    print("Done! File saved:", save_path)
