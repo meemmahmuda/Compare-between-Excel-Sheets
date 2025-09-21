@@ -1,0 +1,12 @@
+🔹 Method 3: Find & Replace
+
+Press Ctrl+H.
+
+In Find what: type ???*,
+(this removes any 3 letters + comma + space).
+
+Leave Replace with: empty.
+
+Click Replace All.
+
+👉 You’ll get 18-Sep-2025.

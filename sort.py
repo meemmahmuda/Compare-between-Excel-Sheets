@@ -111,33 +111,68 @@
 
 
 
+# import pandas as pd
+# from tkinter import Tk, filedialog, StringVar, OptionMenu, Button, Toplevel
+
+# root = Tk(); root.withdraw()
+
+# def load_file(path):
+#     return pd.read_csv(path) if path.endswith(".csv") else pd.read_excel(path)
+
+# f1 = filedialog.askopenfilename(title="Select first file", filetypes=[("Excel or CSV", "*.xlsx *.csv")])
+# f2 = filedialog.askopenfilename(title="Select second file", filetypes=[("Excel or CSV", "*.xlsx *.csv")])
+# df1, df2 = load_file(f1), load_file(f2)
+
+# win = Toplevel(root); win.title("Select Columns")
+# c1, c2 = StringVar(value=df1.columns[0]), StringVar(value=df2.columns[0])
+# OptionMenu(win, c1, *df1.columns).pack(padx=10, pady=5)
+# OptionMenu(win, c2, *df2.columns).pack(padx=10, pady=5)
+# Button(win, text="OK", command=win.destroy).pack(pady=10)
+# root.wait_window(win)
+
+# unmatched = pd.merge(df1, df2, left_on=c1.get(), right_on=c2.get(), how="outer", indicator=True)
+# unmatched = unmatched[unmatched["_merge"] != "both"]
+
+# cols1 = df1.columns.tolist()
+# cols2 = [c for c in unmatched.columns if c not in cols1 + ["_merge"]]
+# unmatched = unmatched.reindex(columns=cols1 + ["", ""] + cols2)
+
+# path = filedialog.asksaveasfilename(title="Save unmatched file", defaultextension=".xlsx", filetypes=[("Excel", "*.xlsx")])
+# if path:
+#     unmatched.to_excel(path, index=False)
+#     print("Saved:", path)
+
+
+
 import pandas as pd
-from tkinter import Tk, filedialog, StringVar, OptionMenu, Button, Toplevel
+from tkinter import Tk, filedialog, StringVar, OptionMenu, Button, Toplevel, Label
+from openpyxl import load_workbook
 
 root = Tk(); root.withdraw()
 
-def load_file(path):
-    return pd.read_csv(path) if path.endswith(".csv") else pd.read_excel(path)
+def load_file(path): 
+    return pd.read_csv(path, dtype=str) if path.endswith(".csv") else pd.read_excel(path, dtype=str)
 
 f1 = filedialog.askopenfilename(title="Select first file", filetypes=[("Excel or CSV", "*.xlsx *.csv")])
 f2 = filedialog.askopenfilename(title="Select second file", filetypes=[("Excel or CSV", "*.xlsx *.csv")])
 df1, df2 = load_file(f1), load_file(f2)
 
 win = Toplevel(root); win.title("Select Columns")
-c1, c2 = StringVar(value=df1.columns[0]), StringVar(value=df2.columns[0])
-OptionMenu(win, c1, *df1.columns).pack(padx=10, pady=5)
-OptionMenu(win, c2, *df2.columns).pack(padx=10, pady=5)
-Button(win, text="OK", command=win.destroy).pack(pady=10)
-root.wait_window(win)
+w,h,sw,sh=400,200,win.winfo_screenwidth(),win.winfo_screenheight()
+win.geometry(f"{w}x{h}+{(sw-w)//2}+{(sh-h)//2}"); win.resizable(False,False)
+c1,c2 = StringVar(value=df1.columns[0]), StringVar(value=df2.columns[0])
+Label(win,text="First file column").pack(); OptionMenu(win,c1,*df1.columns).pack()
+Label(win,text="Second file column").pack(); OptionMenu(win,c2,*df2.columns).pack()
+Button(win,text="OK",command=win.destroy).pack(pady=10); root.wait_window(win)
 
-unmatched = pd.merge(df1, df2, left_on=c1.get(), right_on=c2.get(), how="outer", indicator=True)
-unmatched = unmatched[unmatched["_merge"] != "both"]
+unmatched = pd.merge(df1,df2,left_on=c1.get(),right_on=c2.get(),how="outer",indicator=True)
+unmatched = unmatched[unmatched["_merge"]!="both"].reindex(columns=df1.columns.tolist()+["",""]+[c for c in unmatched.columns if c not in df1.columns and c!="_merge"])
+unmatched = unmatched.astype(str).fillna("").replace("nan","")
 
-cols1 = df1.columns.tolist()
-cols2 = [c for c in unmatched.columns if c not in cols1 + ["_merge"]]
-unmatched = unmatched.reindex(columns=cols1 + ["", ""] + cols2)
-
-path = filedialog.asksaveasfilename(title="Save unmatched file", defaultextension=".xlsx", filetypes=[("Excel", "*.xlsx")])
+path = filedialog.asksaveasfilename(title="Save unmatched file",defaultextension=".xlsx",filetypes=[("Excel","*.xlsx")])
 if path:
-    unmatched.to_excel(path, index=False)
-    print("Saved:", path)
+    unmatched.to_excel(path,index=False,engine="openpyxl")
+    wb=load_workbook(path); ws=wb.active
+    [[setattr(c,"number_format","@") for c in r] for r in ws.iter_rows()]
+    wb.save(path)
+    print("Saved:",path)
